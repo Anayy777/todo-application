@@ -49,7 +49,27 @@ function App() {
 
 }
 
-  const addtodo = async()=> {
+
+const toggleDone = async(id , currentStatus) => {
+  try{
+    const newStatus = !currentStatus;
+
+    await api.put(`/todo/${id}` , {done : newStatus});
+
+    setTodo(prevTodo => prevTodo.map((item) => {
+      if(item._id === id){
+        return {...item , done : newStatus}
+      }
+      return item;
+    }))
+  }catch(err){
+    alert("Failed to update the todo");
+    console.log(err) 
+  }
+}
+
+
+const addtodo = async()=> {
     try{
         await api.post('/todo' , {todo : task , done : false});
         setTask("");
@@ -95,7 +115,9 @@ function App() {
           {
             todo.map(e => (
               <li key={e._id}>
-                {e.todo} {e.done ? "✅" : "⏳"}
+                <span style={{cursor : 'pointer'}} onClick={() => toggleDone(e._id , e.done)}>
+                  {e.todo} {e.done ? "✅" : "⏳"}
+                </span>
               </li>
             ))
           }

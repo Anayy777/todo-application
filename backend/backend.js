@@ -12,13 +12,19 @@ const { userModel , todoModel} = require('./db');
 const cors = require('cors')
 
 
-app.use(cors());
+app.use(cors({
+    origin : 'http://localhost:5173'
+}));
 
-app.use(express.json());
+app.use(express.json()); 
 
 mongoose.connect('mongodb+srv://AnayCse:anaycse@cluster0.k0pfjvb.mongodb.net/todo-app?appName=Cluster0')
 .then(() => {
-    console.log('Connected to db')
+    console.log('Connected to db');
+    app.listen(3000 , () => {
+        console.log("Server running on post 3000");
+    })
+    
 })
 .catch((err) => {
     console.log("COnnection failed : " , err);
@@ -119,7 +125,7 @@ app.post('/signIn' , async(req , res) => {
 
     }catch(err){
         res.status(500).send({
-            errror : err.message
+            error : err.message
         })
     }
 })
@@ -144,7 +150,7 @@ function verifyToken(req , res , next){
         }
 
         else return res.status(404).json({
-            mesasge : "You are not logged in"
+            message : "You are not logged in"
         })
 
 
@@ -173,6 +179,35 @@ app.post('/todo' , verifyToken , async(req , res) => {
 
     }
 )
+
+app.put('/todo:id' , verifyToken , async(req , res) => {
+    const id = req.params.id;
+    const {done} = req.body;
+
+    try{
+        const todo =await todoModel.findOneandUpdate(
+            { _id : id , userId : req.userId } ,
+            {$set : {done : done}} , 
+            {new : true}
+        );
+
+        if(!todo){
+            return res.status(404).json({
+                msg : "Unauthorized user or todo not found"
+            })
+        }
+
+        return res.status(202).json({
+            msg : "Todo updated successfully"
+        })
+        
+    }catch(err){    
+        return res.status(500).json({
+            message : "Error updating todo"  , 
+            error : err.message
+        })
+    }
+})
 
 app.get('/todos' , verifyToken , async(req , res) => {
     const userId = req.userId;
