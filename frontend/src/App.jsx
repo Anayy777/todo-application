@@ -7,7 +7,7 @@ function App() {
 
   const [todo , setTodo] = useState([]);
   const [task , setTask] = useState('');
-
+  const [username , setusername] = useState(localStorage.getItem('username') || "");
   const [authData , setauthData] = useState({name : '' , email : '' , password : ''});
   const [signUp , setsignUp] = useState(false);
 
@@ -33,8 +33,11 @@ function App() {
     const res = await api.post(endPoint , authData);
 
     if(!signUp){
+      console.log(res.data.name);
       localStorage.setItem('token' , res.data.token);
+      localStorage.setItem('username' , res.data.name);
       setLoggedIn(true)
+      setusername(res.data.name);
     }
     else{
       alert("Signup Successful! Continue to login");
@@ -48,7 +51,7 @@ function App() {
 
   const addtodo = async()=> {
     try{
-        await api.get('/todo' , {todo : task , done : false});
+        await api.post('/todo' , {todo : task , done : false});
         setTask("");
         fetchTodos();
 
@@ -60,6 +63,7 @@ function App() {
 
     const logout= () => {
       localStorage.removeItem('token');
+      localStorage.removeItem('username');
       setLoggedIn(false);
       setTodo([]);
     }
@@ -81,7 +85,7 @@ function App() {
 
     return(
       <div>
-        <h2>MY TODOS  <button onClick={logout}>Logout</button></h2>
+        <h2>TODO LIST OF USER {username}  <button onClick={logout}>Logout</button></h2>
 
         <input value={task} onChange={e => setTask(e.target.value)} placeholder = 'Enter Your task'></input>
 
